@@ -1,11 +1,11 @@
 export default function Navbar() {
   const classes = {
-    iconWrapper: 'flex h-20 w-full items-center justify-center border-b border-[#f4f5f91A]',
+    iconWrapper: 'flex h-20 w-full items-center justify-center border-b border-[#f4f5f91A] hover:bg-[#5172c2]',
     icon: 'h-6 w-6 text-[#f4f5f9]',
   }
 
   return (
-    <nav className="flex h-full w-20 flex-col items-center bg-gradient-to-b from-[#5172c2] to-[#3d52a1]">
+    <nav className="flex h-full w-20 flex-col items-center bg-gradient-to-b from-[#4768b5] to-[#3d52a1]">
       <div className={classes.iconWrapper}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
