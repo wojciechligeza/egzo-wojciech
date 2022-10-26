@@ -13,12 +13,12 @@ const BASE_URL = 'https://randomuser.me/api/'
 
 function Recipient({ picture, name }: RecipientProps) {
   return (
-    <div className="flex h-24 w-full items-center gap-4 border-b border-[#e1e1e1]">
+    <div className="flex h-24 w-full cursor-pointer items-center gap-4 border-b border-[#e1e1e1] hover:border-r-4 hover:border-r-[#5172c2] hover:bg-white">
       <img src={picture.medium} alt="" className="ml-4 h-12 w-12 rounded-full bg-cover" />
       <div className="w-1/2">
-        <h1 className=" text-lg font-semibold">
+        <h2 className=" text-lg font-semibold">
           {name.first} {name.last}
-        </h1>
+        </h2>
         <p className="truncate text-sm">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
       </div>
       <div className="w-auto rounded-full bg-white p-1 text-xs">2 min</div>
