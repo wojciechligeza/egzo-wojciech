@@ -1,52 +1,25 @@
-import { useEffect } from 'react'
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { getRecipients, type IRecipient } from '../store/recipientSlice'
 import Spinner from './Spinner'
 import MessageAlert from './MessageAlert'
+
+type SearchRecipientsInputProps = {
+  handleOnChange: Dispatch<SetStateAction<string>>
+}
 
 type RecipientProps = {
   picture: IRecipient['picture']
   name: IRecipient['name']
 }
 
+type RecipientsProps = {
+  searchedRecipients: string
+}
+
 const BASE_URL = 'https://randomuser.me/api/'
 
-function Recipient({ picture, name }: RecipientProps) {
-  return (
-    <div className="flex h-24 w-full cursor-pointer items-center gap-4 border-b border-[#e1e1e1] hover:border-r-4 hover:border-r-[#5172c2] hover:bg-white">
-      <img src={picture.medium} alt="" className="ml-4 h-12 w-12 rounded-full bg-cover" />
-      <div className="w-1/2">
-        <h2 className=" text-lg font-semibold">
-          {name.first} {name.last}
-        </h2>
-        <p className="truncate text-sm">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-      </div>
-      <div className="w-auto rounded-full bg-white p-1 text-xs">2 min</div>
-    </div>
-  )
-}
-
-function Recipients() {
-  const dispatch = useAppDispatch()
-  const { recipients } = useAppSelector(state => state.recipients)
-
-  useEffect(() => {
-    dispatch(getRecipients(`${BASE_URL}?results=10`))
-  }, [dispatch])
-
-  if (recipients.isLoading) return <Spinner />
-  if (recipients.errorMessage) return <MessageAlert message={recipients.errorMessage} />
-
-  return (
-    <>
-      {recipients.data.results.map(recipient => (
-        <Recipient key={recipient.email} picture={recipient.picture} name={recipient.name} />
-      ))}
-    </>
-  )
-}
-
-function SearchRecipientsInput() {
+function SearchRecipientsInput({ handleOnChange }: SearchRecipientsInputProps) {
   return (
     <div className="border-b border-[#e1e1e1] p-6">
       <form role="search" className="flex items-center rounded-full bg-white p-1">
@@ -65,6 +38,7 @@ function SearchRecipientsInput() {
           />
         </svg>
         <input
+          onChange={e => handleOnChange(e.target.value)}
           type="search"
           name="search"
           placeholder="Search..."
@@ -76,11 +50,58 @@ function SearchRecipientsInput() {
   )
 }
 
-function RecipientsListPanel() {
+function Recipient({ picture, name }: RecipientProps) {
   return (
-    <section className="flex h-full w-1/4 flex-col bg-[#f4f5f9]">
-      <SearchRecipientsInput />
-      <Recipients />
+    <div className="flex h-24 w-full cursor-pointer items-center gap-4 border-b border-[#e1e1e1] hover:border-r-4 hover:border-r-[#5172c2] hover:bg-white">
+      <img src={picture.medium} alt="" className="ml-4 h-12 w-12 rounded-full bg-cover" />
+      <div className="w-1/2">
+        <h2 className=" text-lg font-semibold">
+          {name.first} {name.last}
+        </h2>
+        <p className="truncate text-sm">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+      </div>
+      <div className="w-auto rounded-full bg-white p-1 text-xs">2 min</div>
+    </div>
+  )
+}
+
+function Recipients({ searchedRecipients }: RecipientsProps) {
+  const dispatch = useAppDispatch()
+  const { recipients } = useAppSelector(state => state.recipients)
+
+  useEffect(() => {
+    dispatch(getRecipients(`${BASE_URL}?results=10`))
+  }, [dispatch])
+
+  const filteredRecipients = useMemo(
+    () =>
+      recipients.data.results.filter(
+        recipient =>
+          recipient.name.first.toLowerCase().includes(searchedRecipients.toLowerCase()) ||
+          recipient.name.last.toLowerCase().includes(searchedRecipients.toLowerCase())
+      ),
+    [recipients.data.results, searchedRecipients]
+  )
+
+  if (recipients.isLoading) return <Spinner />
+  if (recipients.errorMessage) return <MessageAlert message={recipients.errorMessage} />
+
+  return (
+    <>
+      {filteredRecipients.map(recipient => (
+        <Recipient key={recipient.email} picture={recipient.picture} name={recipient.name} />
+      ))}
+    </>
+  )
+}
+
+function RecipientsListPanel() {
+  const [searchedRecipients, setSearchedRecipients] = useState('')
+
+  return (
+    <section className="flex h-full w-1/4 flex-col overflow-y-auto bg-[#f4f5f9]">
+      <SearchRecipientsInput handleOnChange={setSearchedRecipients} />
+      <Recipients searchedRecipients={searchedRecipients} />
     </section>
   )
 }

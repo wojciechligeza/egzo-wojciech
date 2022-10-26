@@ -5,7 +5,7 @@ export default function ChatWindow() {
   }
 
   return (
-    <main className="h-full w-1/2 bg-[#f4f5f9]">
+    <div className="flex h-full w-1/2 flex-grow flex-col bg-[#f4f5f9]">
       <header className="flex h-16 w-full">
         <h1 className="mb-1 w-2/3 bg-white p-4">
           Chat with <span className="border- border-b-2 border-b-[#5172c2] font-semibold text-[#5172c2]">User</span>
@@ -60,6 +60,14 @@ export default function ChatWindow() {
           </div>
         </div>
       </header>
-    </main>
+      <main className="mb-1 w-full flex-1 bg-white"></main>
+      <input
+        type="text"
+        name="chat"
+        placeholder="Type your message here..."
+        aria-label="Type message"
+        className="h-16 w-full bg-white pl-4 leading-tight focus:outline-none"
+      />
+    </div>
   )
 }
