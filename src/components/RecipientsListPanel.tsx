@@ -22,7 +22,7 @@ const BASE_URL = 'https://randomuser.me/api/'
 function SearchRecipientsInput({ handleOnChange }: SearchRecipientsInputProps) {
   return (
     <div className="border-b border-[#e1e1e1] p-6">
-      <form role="search" className="flex items-center rounded-full bg-white p-1">
+      <form role="search" className="flex items-center rounded-full bg-white p-1" autoComplete="off">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"

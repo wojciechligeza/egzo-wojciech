@@ -1,13 +1,15 @@
 export default function Navbar() {
   const classes = {
-    iconWrapper:
-      'flex h-20 w-full items-center justify-center border-b border-[#f4f5f91A] hover:bg-[#5172c2] cursor-pointer',
+    iconWrapper: (selected?: boolean) =>
+      `${
+        selected ? 'bg-[#5172c2] ' : ''
+      }flex h-20 w-full items-center justify-center border-b border-[#f4f5f91A] hover:bg-[#5172c2] cursor-pointer`,
     icon: 'h-6 w-6 text-[#f4f5f9]',
   }
 
   return (
     <nav className="flex h-full w-20 flex-col items-center overflow-y-auto bg-gradient-to-b from-[#4768b5] to-[#3d52a1]">
-      <div className={classes.iconWrapper}>
+      <div className={classes.iconWrapper()}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -23,7 +25,7 @@ export default function Navbar() {
           />
         </svg>
       </div>
-      <div className={classes.iconWrapper}>
+      <div className={classes.iconWrapper()}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -39,7 +41,7 @@ export default function Navbar() {
           />
         </svg>
       </div>
-      <div className={classes.iconWrapper}>
+      <div className={classes.iconWrapper()}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -55,7 +57,7 @@ export default function Navbar() {
           />
         </svg>
       </div>
-      <div className={classes.iconWrapper}>
+      <div className={classes.iconWrapper(true)}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -71,14 +73,14 @@ export default function Navbar() {
           />
         </svg>
       </div>
-      <div className={classes.iconWrapper}>
+      <div className={classes.iconWrapper()}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth="1.5"
           stroke="currentColor"
-          className="h-6 w-6 text-[#f4f5f9]"
+          className={classes.icon}
         >
           <path
             strokeLinecap="round"
@@ -87,7 +89,7 @@ export default function Navbar() {
           />
         </svg>
       </div>
-      <div className={classes.iconWrapper}>
+      <div className={classes.iconWrapper()}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
