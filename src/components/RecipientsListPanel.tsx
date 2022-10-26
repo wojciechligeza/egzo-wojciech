@@ -75,12 +75,12 @@ function Recipients({ searchedRecipients }: RecipientsProps) {
 
   const filteredRecipients = useMemo(
     () =>
-      recipients.data.results.filter(
+      recipients.results.filter(
         recipient =>
           recipient.name.first.toLowerCase().includes(searchedRecipients.toLowerCase()) ||
           recipient.name.last.toLowerCase().includes(searchedRecipients.toLowerCase())
       ),
-    [recipients.data.results, searchedRecipients]
+    [recipients.results, searchedRecipients]
   )
 
   if (recipients.isLoading) return <Spinner />
@@ -89,7 +89,7 @@ function Recipients({ searchedRecipients }: RecipientsProps) {
   return (
     <>
       {filteredRecipients.map(recipient => (
-        <Recipient key={recipient.email} picture={recipient.picture} name={recipient.name} />
+        <Recipient key={recipient.id} picture={recipient.picture} name={recipient.name} />
       ))}
     </>
   )

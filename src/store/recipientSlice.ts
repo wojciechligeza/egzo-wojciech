@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { v4 as uuid } from 'uuid'
 import { RootState } from '.'
 
-export interface IRecipient {
-  isActive: boolean
+interface IResponse {
   gender: string
   name: {
     title: string
@@ -34,24 +34,27 @@ export interface IRecipient {
   nat: string
 }
 
+interface IRecipientState {
+  id: string
+  isActive: boolean
+}
+
+export interface IRecipient extends IRecipientState, IResponse {}
+
 interface ILoadingState {
   isLoading: boolean
   errorMessage: string
 }
 
-type Recipients = {
+interface IRecipients {
   recipients: {
-    data: {
-      results: IRecipient[]
-    }
+    results: IRecipient[]
   } & ILoadingState
 }
 
-const initialState: Recipients = {
+const initialState: IRecipients = {
   recipients: {
-    data: {
-      results: [],
-    },
+    results: [],
     isLoading: false,
     errorMessage: '',
   },
@@ -61,7 +64,8 @@ const STANDARD_ERROR_MESSAGE = 'Something went wrong. Please try to reload the p
 
 export const getRecipients = createAsyncThunk('getRecipients', async (url: string) => {
   const response = await fetch(url)
-  return (await response.json()) as { results: IRecipient[] }
+  const { results } = (await response.json()) as { results: IResponse[] }
+  return results.map(recipient => ({ ...recipient, id: uuid(), isActive: false }))
 })
 
 export const recipientSlice = createSlice({
@@ -73,8 +77,8 @@ export const recipientSlice = createSlice({
       // doesn't actually mutate the state because it uses the Immer library,
       // which detects changes to a "draft state" and produces a brand new
       // immutable state based off those changes
-      state.recipients.data.results.forEach(recipient =>
-        recipient.email === action.payload ? (recipient.isActive = true) : (recipient.isActive = false)
+      state.recipients.results.forEach(recipient =>
+        recipient.id === action.payload ? (recipient.isActive = true) : (recipient.isActive = false)
       )
     },
   },
@@ -85,7 +89,7 @@ export const recipientSlice = createSlice({
       })
       .addCase(getRecipients.fulfilled, (state, action) => {
         state.recipients.isLoading = false
-        state.recipients.data.results = action.payload.results
+        state.recipients.results = action.payload
       })
       .addCase(getRecipients.rejected, (state, action) => {
         state.recipients.isLoading = false
