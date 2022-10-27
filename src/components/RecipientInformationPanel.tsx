@@ -9,7 +9,7 @@ export default function RecipientInformationPanel() {
     : 'Unknown'
 
   return (
-    <aside className="flex h-full w-1/5 flex-col bg-[#f4f5f9]">
+    <aside className="hidden h-full w-1/5 flex-col overflow-clip bg-[#f4f5f9] lg:flex">
       <section className="ml-1 mb-1 flex h-2/5 flex-col items-center bg-white">
         <img src={recipient?.picture.large} alt="" className="mt-8 rounded-full" />
         <div className="mt-5 text-lg font-bold text-[#5172c2]">
