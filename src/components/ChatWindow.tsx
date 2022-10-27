@@ -6,6 +6,7 @@ import { type IRecipient, selectActiveRecipient, sortByFavourite } from '../stor
 type ChatHeaderProps = {
   recipientId?: IRecipient['id']
   recipientName?: IRecipient['name']
+  recipientIsFavourite?: IRecipient['isFavourite']
 }
 
 type MessagesProps = {
@@ -24,12 +25,12 @@ type SendMessageInputProps = {
 
 type SimulatedResponse = `Odpowiadam: ${string}`
 
-function ChatHeader({ recipientId, recipientName }: ChatHeaderProps) {
+function ChatHeader({ recipientId, recipientName, recipientIsFavourite }: ChatHeaderProps) {
   const dispatch = useAppDispatch()
 
   const classes = {
     iconWrapper: 'flex bg-white h-full w-full items-center justify-center ml-1',
-    icon: 'h-8 w-8 text-[#5172c2] hover:fill-[#e4effe]',
+    fillIcon: (clicked?: boolean) => `h-8 w-8 text-[#5172c2] ${clicked ? 'fill-[#5172c2]' : 'hover:fill-[#e4effe]'}`,
   }
 
   const handleClickedFavourite = () => {
@@ -60,7 +61,7 @@ function ChatHeader({ recipientId, recipientName }: ChatHeaderProps) {
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className={classes.icon}
+            className={classes.fillIcon()}
           >
             <path
               strokeLinecap="round"
@@ -76,7 +77,7 @@ function ChatHeader({ recipientId, recipientName }: ChatHeaderProps) {
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className={classes.icon}
+            className={classes.fillIcon()}
           >
             <path
               strokeLinecap="round"
@@ -91,7 +92,7 @@ function ChatHeader({ recipientId, recipientName }: ChatHeaderProps) {
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className={classes.icon}
+            className={classes.fillIcon(recipientIsFavourite)}
           >
             <path
               strokeLinecap="round"
@@ -286,7 +287,11 @@ function ChatWindow() {
 
   return (
     <div className="flex h-full w-1/2 flex-grow flex-col bg-[#f4f5f9]">
-      <ChatHeader recipientId={recipient?.id} recipientName={recipient?.name} />
+      <ChatHeader
+        recipientId={recipient?.id}
+        recipientName={recipient?.name}
+        recipientIsFavourite={recipient?.isFavourite}
+      />
       <Messages senderPictureMedium={recipient?.picture.medium} />
       <SendMessageInput recipientId={recipient?.id} recipientFirstName={recipient?.name.first} />
     </div>

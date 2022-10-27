@@ -72,7 +72,7 @@ export default function RecipientInformationPanel() {
       <section className="ml-1 flex-1 bg-white">
         {recipient ? (
           <>
-            <div className="my-8 flex justify-center gap-2">
+            <div className="my-6 flex justify-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -89,7 +89,7 @@ export default function RecipientInformationPanel() {
               </svg>
               <div className="font-semibold text-[#9ca3af]">SHARED FILES</div>
             </div>
-            <ul className="ml-16 flex list-disc flex-col gap-2">
+            <ul className="ml-14 flex list-disc flex-col gap-2">
               <li className="text-[#9ca3af] underline">Annual Plan.doc</li>
               <li className="text-[#9ca3af] underline">Offers to Companies.pdf</li>
               <li className="text-[#9ca3af] underline">Calculations.xls</li>
