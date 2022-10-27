@@ -2,7 +2,7 @@ type MessageAlertProps = {
   message: string
 }
 
-export default function MessageAlert({ message }: MessageAlertProps) {
+export default function Alert({ message }: MessageAlertProps) {
   return (
     <div className="mx-auto mt-6 flex w-1/2 items-center gap-4 rounded-full bg-red-100 p-2 text-red-600">
       <svg

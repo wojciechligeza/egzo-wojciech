@@ -1,9 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit'
 import recipientsReducer from './recipientSlice'
+import messageReducer from './messageSlice'
+import userReducer from './userSlice'
 
 const store = configureStore({
   reducer: {
     recipients: recipientsReducer,
+    messages: messageReducer,
+    user: userReducer,
   },
 })
 

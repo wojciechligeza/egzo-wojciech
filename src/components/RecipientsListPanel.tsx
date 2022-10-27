@@ -1,16 +1,18 @@
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
-import { getRecipients, type IRecipient } from '../store/recipientSlice'
+import { activateRecipient, getRecipients, type IRecipient } from '../store/recipientSlice'
 import Spinner from './Spinner'
-import MessageAlert from './MessageAlert'
+import Alert from './Alert'
 
 type SearchRecipientsInputProps = {
   handleOnChange: Dispatch<SetStateAction<string>>
 }
 
 type RecipientProps = {
+  id: IRecipient['id']
   picture: IRecipient['picture']
   name: IRecipient['name']
+  isActive: IRecipient['isActive']
 }
 
 type RecipientsProps = {
@@ -50,24 +52,31 @@ function SearchRecipientsInput({ handleOnChange }: SearchRecipientsInputProps) {
   )
 }
 
-function Recipient({ picture, name }: RecipientProps) {
+function Recipient({ picture, name, id, isActive }: RecipientProps) {
+  const dispatch = useAppDispatch()
+
   return (
-    <div className="flex h-24 w-full cursor-pointer items-center gap-4 border-b border-[#e1e1e1] hover:border-r-4 hover:border-r-[#5172c2] hover:bg-white">
+    <button
+      onClick={() => dispatch(activateRecipient(id))}
+      className={`flex h-24 w-full items-center gap-4 border-b border-[#e1e1e1] hover:border-r-4 hover:border-r-[#5172c2] hover:bg-white ${
+        isActive ? 'border-r-4 border-r-[#5172c2] bg-white' : ''
+      }`}
+    >
       <img src={picture.medium} alt="" className="ml-4 h-12 w-12 rounded-full bg-cover" />
-      <div className="w-1/2">
-        <h2 className=" text-lg font-semibold">
+      <div className="w-1/2 text-left">
+        <div className=" text-lg font-semibold">
           {name.first} {name.last}
-        </h2>
-        <p className="truncate text-sm">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+        </div>
+        <div className="truncate text-sm">Lorem ipsum dolor sit amet consectetur adipisicing elit.</div>
       </div>
       <div className="w-auto rounded-full bg-white p-1 text-xs">2 min</div>
-    </div>
+    </button>
   )
 }
 
 function Recipients({ searchedRecipients }: RecipientsProps) {
   const dispatch = useAppDispatch()
-  const { recipients } = useAppSelector(state => state.recipients)
+  const recipients = useAppSelector(state => state.recipients)
 
   useEffect(() => {
     dispatch(getRecipients(`${BASE_URL}?results=10`))
@@ -84,12 +93,18 @@ function Recipients({ searchedRecipients }: RecipientsProps) {
   )
 
   if (recipients.isLoading) return <Spinner />
-  if (recipients.errorMessage) return <MessageAlert message={recipients.errorMessage} />
+  if (recipients.errorMessage) return <Alert message={recipients.errorMessage} />
 
   return (
     <>
       {filteredRecipients.map(recipient => (
-        <Recipient key={recipient.id} picture={recipient.picture} name={recipient.name} />
+        <Recipient
+          key={recipient.id}
+          id={recipient.id}
+          picture={recipient.picture}
+          name={recipient.name}
+          isActive={recipient.isActive}
+        />
       ))}
     </>
   )

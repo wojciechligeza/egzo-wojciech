@@ -46,21 +46,17 @@ interface ILoadingState {
   errorMessage: string
 }
 
-interface IRecipients {
-  recipients: {
-    results: IRecipient[]
-  } & ILoadingState
+interface IRecipients extends ILoadingState {
+  results: IRecipient[]
 }
 
 const initialState: IRecipients = {
-  recipients: {
-    results: [],
-    isLoading: false,
-    errorMessage: '',
-  },
+  results: [],
+  isLoading: false,
+  errorMessage: '',
 }
 
-const STANDARD_ERROR_MESSAGE = 'Something went wrong. Please try to reload the page.'
+const STANDARD_ERROR_MESSAGE = 'No recipients'
 
 export const getRecipients = createAsyncThunk('getRecipients', async (url: string) => {
   const response = await fetch(url)
@@ -72,12 +68,12 @@ export const recipientSlice = createSlice({
   name: 'recipient',
   initialState,
   reducers: {
-    activate: (state, action: PayloadAction<string>) => {
+    activateRecipient: (state, action: PayloadAction<string>) => {
       // Redux Toolkit allows us to write "mutating" logic in reducers. It
       // doesn't actually mutate the state because it uses the Immer library,
       // which detects changes to a "draft state" and produces a brand new
       // immutable state based off those changes
-      state.recipients.results.forEach(recipient =>
+      state.results.forEach(recipient =>
         recipient.id === action.payload ? (recipient.isActive = true) : (recipient.isActive = false)
       )
     },
@@ -85,23 +81,23 @@ export const recipientSlice = createSlice({
   extraReducers: builder => {
     builder
       .addCase(getRecipients.pending, state => {
-        state.recipients.isLoading = true
+        state.isLoading = true
       })
       .addCase(getRecipients.fulfilled, (state, action) => {
-        state.recipients.isLoading = false
-        state.recipients.results = action.payload
+        state.isLoading = false
+        state.results = action.payload
       })
       .addCase(getRecipients.rejected, (state, action) => {
-        state.recipients.isLoading = false
-        state.recipients.errorMessage = action.error.message || STANDARD_ERROR_MESSAGE
+        state.isLoading = false
+        state.errorMessage = action.error.message || STANDARD_ERROR_MESSAGE
       })
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { activate } = recipientSlice.actions
+export const { activateRecipient } = recipientSlice.actions
 
-// Other code such as selectors can use the imported `RootState` type
-export const selectRecipient = (state: RootState) => state.recipients
+export const selectActiveRecipient = (state: RootState) =>
+  state.recipients.results.find(recipient => recipient.isActive)
 
 export default recipientSlice.reducer

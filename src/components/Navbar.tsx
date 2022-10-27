@@ -8,7 +8,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="flex h-full w-20 flex-col items-center overflow-y-auto bg-gradient-to-b from-[#4768b5] to-[#3d52a1]">
+    <nav className="flex h-full w-20 flex-col items-center overflow-y-auto bg-gradient-to-b from-[#4768b5] to-[#253468]">
       <div className={classes.selectIcon()}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
