@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { activateRecipient, getRecipients, type IRecipient } from '../store/recipientSlice'
 import Spinner from './Spinner'
 import Alert from './Alert'
+import { convertTimeToReadableFormat } from '../utils'
 
 type SearchRecipientsInputProps = {
   handleOnChange: Dispatch<SetStateAction<string>>
@@ -54,6 +55,57 @@ function SearchRecipientsInput({ handleOnChange }: SearchRecipientsInputProps) {
 
 function Recipient({ picture, name, id, isActive }: RecipientProps) {
   const dispatch = useAppDispatch()
+  const messages = useAppSelector(state => state.messages.chat)
+
+  const getLatestMessage = useMemo(() => {
+    if (messages.length < 1) return null
+
+    const userMessages = messages.filter(message => message.recipientId === id)
+    const recipientMessages = messages.filter(message => message.senderId === id)
+
+    if (userMessages.length < 1 || recipientMessages.length < 1) return null
+
+    let latestUserMessage = { text: '', createdAt: 0, time: '' }
+    let latestRecipientMessage = { text: '', createdAt: 0, time: '' }
+
+    if (userMessages.length === 1) {
+      latestUserMessage = {
+        text: userMessages[0].message.text,
+        time: convertTimeToReadableFormat(Date.now() - userMessages[0].message.createdAt),
+        createdAt: userMessages[0].message.createdAt,
+      }
+    }
+    if (recipientMessages.length === 1) {
+      latestRecipientMessage = {
+        text: recipientMessages[0].message.text,
+        time: convertTimeToReadableFormat(Date.now() - recipientMessages[0].message.createdAt),
+        createdAt: recipientMessages[0].message.createdAt,
+      }
+    }
+
+    if (userMessages.length > 1) {
+      const { message } = userMessages.reduce((prev, current) =>
+        prev.message.createdAt > current.message.createdAt ? prev : current
+      )
+      latestUserMessage = {
+        text: message.text,
+        time: convertTimeToReadableFormat(Date.now() - message.createdAt),
+        createdAt: message.createdAt,
+      }
+    }
+    if (recipientMessages.length > 1) {
+      const { message } = recipientMessages.reduce((prev, current) =>
+        prev.message.createdAt > current.message.createdAt ? prev : current
+      )
+      latestRecipientMessage = {
+        text: message.text,
+        time: convertTimeToReadableFormat(Date.now() - message.createdAt),
+        createdAt: message.createdAt,
+      }
+    }
+
+    return latestRecipientMessage.createdAt > latestUserMessage?.createdAt ? latestRecipientMessage : latestUserMessage
+  }, [id, messages])
 
   return (
     <button
@@ -67,16 +119,18 @@ function Recipient({ picture, name, id, isActive }: RecipientProps) {
         <div className=" text-lg font-semibold">
           {name.first} {name.last}
         </div>
-        <div className="truncate text-sm">Lorem ipsum dolor sit amet consectetur adipisicing elit.</div>
+        <div className="truncate text-sm">{getLatestMessage?.text}</div>
       </div>
-      <div className="w-auto rounded-full bg-white p-1 text-xs">2 min</div>
+      <div className={`w-auto rounded-full p-1 text-xs${getLatestMessage?.time ? ' bg-white' : ''}`}>
+        {getLatestMessage?.time}
+      </div>
     </button>
   )
 }
 
 function Recipients({ searchedRecipients }: RecipientsProps) {
-  const dispatch = useAppDispatch()
   const recipients = useAppSelector(state => state.recipients)
+  const dispatch = useAppDispatch()
 
   useEffect(() => {
     dispatch(getRecipients(`${BASE_URL}?results=10`))

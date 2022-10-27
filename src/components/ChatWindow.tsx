@@ -13,7 +13,7 @@ type MessagesProps = {
 
 type MessageProps = {
   sendByUser: boolean
-  messageTimestamp: number
+  messageTimestamp: string
   messageText: string
 } & MessagesProps
 
@@ -98,9 +98,6 @@ function ChatHeader({ recipientName }: ChatHeaderProps) {
 }
 
 function Message({ senderPictureMedium, sendByUser, messageText, messageTimestamp }: MessageProps) {
-  const date = new Date(messageTimestamp)
-  const hoursAndMinutes = `${date.getHours()}:${date.getMinutes()}`
-
   if (sendByUser) {
     return (
       <div className="m-4 flex items-center self-end">
@@ -108,7 +105,7 @@ function Message({ senderPictureMedium, sendByUser, messageText, messageTimestam
         <div className="h-0 w-0 border-y-8 border-l-[8px] border-[#e4effe] border-y-transparent"></div>
         <div className="flex flex-col items-center">
           <img src={senderPictureMedium} alt="" className="mt-6 ml-4 h-12 w-12 rounded-full bg-contain" />
-          <div className="mt-1 ml-3 text-xs font-semibold">{hoursAndMinutes}</div>
+          <div className="mt-1 ml-3 text-xs font-semibold">{messageTimestamp}</div>
         </div>
       </div>
     )
@@ -118,7 +115,7 @@ function Message({ senderPictureMedium, sendByUser, messageText, messageTimestam
     <div className="m-4 flex items-center self-start">
       <div className="flex flex-col items-center">
         <img src={senderPictureMedium} alt="" className="mt-6 mr-4 h-12 w-12 rounded-full bg-contain" />
-        <div className="mt-1 mr-3 text-xs font-semibold">{hoursAndMinutes}</div>
+        <div className="mt-1 mr-3 text-xs font-semibold">{messageTimestamp}</div>
       </div>
       <div className="h-0 w-0 border-y-8 border-r-[8px] border-[#f6f6f6] border-y-transparent"></div>
       <div className="rounded-2xl bg-[#f6f6f6] p-4">{messageText}</div>
@@ -133,13 +130,17 @@ function Messages({ senderPictureMedium }: MessagesProps) {
     <main className="mb-1 flex w-full flex-1 flex-col overflow-x-auto bg-white">
       {messages.map(item => {
         const sendByUser = item.senderId === user.id
+        const date = new Date(item.message.createdAt)
+        const minutes =
+          date.getMinutes().toLocaleString().length === 1 ? `0${date.getMinutes()}` : `${date.getMinutes()}`
+        const hoursAndMinutes = `${date.getHours()}:${minutes}`
         return (
           <Message
             key={item.message.createdAt}
             senderPictureMedium={sendByUser ? user.avatar : senderPictureMedium}
             sendByUser={sendByUser}
             messageText={item.message.text}
-            messageTimestamp={item.message.createdAt}
+            messageTimestamp={hoursAndMinutes}
           />
         )
       })}
@@ -207,6 +208,7 @@ function SendMessageInput({ recipientId, recipientFirstName }: SendMessageInputP
         aria-label="Type message"
         className="my-1 h-[calc(100%_-_8px)] w-3/4 rounded-2xl pl-2 leading-tight focus:outline-none"
         onKeyDown={handleKeyDown}
+        autoComplete="off"
       />
       <div className="flex flex-1">
         <button className="m-1 p-2">
