@@ -1,4 +1,4 @@
-import { KeyboardEvent, useRef } from 'react'
+import { KeyboardEvent, useCallback, useRef, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { addMessage, selectActiveChat } from '../store/messageSlice'
 import { IRecipient, selectActiveRecipient } from '../store/recipientSlice'
@@ -8,13 +8,21 @@ type ChatHeaderProps = {
 }
 
 type MessagesProps = {
-  recipientId?: IRecipient['id']
-  recipientPicture?: IRecipient['picture']
+  senderPictureMedium?: string
 }
+
+type MessageProps = {
+  sendByUser: boolean
+  messageTimestamp: number
+  messageText: string
+} & MessagesProps
 
 type SendMessageInputProps = {
   recipientId?: IRecipient['id']
+  recipientFirstName?: string
 }
+
+type SimulatedResponse = `Odpowiadam: ${string}`
 
 function ChatHeader({ recipientName }: ChatHeaderProps) {
   const classes = {
@@ -89,19 +97,80 @@ function ChatHeader({ recipientName }: ChatHeaderProps) {
   )
 }
 
-function Messages({ recipientId, recipientPicture }: MessagesProps) {
-  const messages = useAppSelector(selectActiveChat)
+function Message({ senderPictureMedium, sendByUser, messageText, messageTimestamp }: MessageProps) {
+  const date = new Date(messageTimestamp)
+  const hoursAndMinutes = `${date.getHours()}:${date.getMinutes()}`
+
+  if (sendByUser) {
+    return (
+      <div className="m-4 flex items-center self-end">
+        <div className="rounded-2xl bg-[#e4effe] p-4">{messageText}</div>
+        <div className="h-0 w-0 border-y-8 border-l-[8px] border-[#e4effe] border-y-transparent"></div>
+        <div className="flex flex-col items-center">
+          <img src={senderPictureMedium} alt="" className="mt-6 ml-4 h-12 w-12 rounded-full bg-contain" />
+          <div className="mt-1 ml-3 text-xs font-semibold">{hoursAndMinutes}</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <main className="mb-1 w-full flex-1 bg-white">
-      Messages {recipientId} {recipientPicture?.medium} {JSON.stringify(messages)}
+    <div className="m-4 flex items-center self-start">
+      <div className="flex flex-col items-center">
+        <img src={senderPictureMedium} alt="" className="mt-6 mr-4 h-12 w-12 rounded-full bg-contain" />
+        <div className="mt-1 mr-3 text-xs font-semibold">{hoursAndMinutes}</div>
+      </div>
+      <div className="h-0 w-0 border-y-8 border-r-[8px] border-[#f6f6f6] border-y-transparent"></div>
+      <div className="rounded-2xl bg-[#f6f6f6] p-4">{messageText}</div>
+    </div>
+  )
+}
+
+function Messages({ senderPictureMedium }: MessagesProps) {
+  const messages = useAppSelector(selectActiveChat)
+  const user = useAppSelector(state => state.user)
+  return (
+    <main className="mb-1 flex w-full flex-1 flex-col overflow-x-auto bg-white">
+      {messages.map(item => {
+        const sendByUser = item.senderId === user.id
+        return (
+          <Message
+            key={item.message.createdAt}
+            senderPictureMedium={sendByUser ? user.avatar : senderPictureMedium}
+            sendByUser={sendByUser}
+            messageText={item.message.text}
+            messageTimestamp={item.message.createdAt}
+          />
+        )
+      })}
     </main>
   )
 }
 
-function SendMessageInput({ recipientId }: SendMessageInputProps) {
+function SendMessageInput({ recipientId, recipientFirstName }: SendMessageInputProps) {
   const user = useAppSelector(state => state.user)
   const dispatch = useAppDispatch()
   const inputRef = useRef<HTMLInputElement>(null)
+  const [recipientIsTyping, setRecipientIsTyping] = useState(false)
+
+  const simulateResponse = useCallback(() => {
+    if (recipientId && inputRef.current?.value) {
+      const text: SimulatedResponse = `Odpowiadam: ${inputRef.current.value}`
+      const max = 10 * 1000 // 10 secs
+      const min = 5 * 1000 // 5 secs
+      setRecipientIsTyping(true)
+      setTimeout(() => {
+        dispatch(
+          addMessage({
+            senderId: recipientId,
+            recipientId: user.id,
+            message: { text, createdAt: Date.now() },
+          })
+        )
+        setRecipientIsTyping(false)
+      }, Math.floor(Math.random() * (max - min + 1) + min)) // execute in random time from 5 to 10 secs inclusive
+    }
+  }, [dispatch, recipientId, user.id])
 
   const sendMessage = () => {
     if (recipientId && inputRef.current?.value) {
@@ -112,6 +181,7 @@ function SendMessageInput({ recipientId }: SendMessageInputProps) {
           message: { text: inputRef.current.value, createdAt: Date.now() },
         })
       )
+      simulateResponse()
       inputRef.current.value = ''
     }
   }
@@ -124,7 +194,10 @@ function SendMessageInput({ recipientId }: SendMessageInputProps) {
   }
 
   return (
-    <div className="flex h-16 w-full bg-white pl-4">
+    <div className="relative flex h-16 w-full bg-white pl-2">
+      {recipientIsTyping ? (
+        <div className="absolute -top-6 text-sm text-[#b1b1b1]">{recipientFirstName} is typing...</div>
+      ) : null}
       <input
         ref={inputRef}
         disabled={!recipientId}
@@ -132,7 +205,7 @@ function SendMessageInput({ recipientId }: SendMessageInputProps) {
         name="chat"
         placeholder="Type your message here..."
         aria-label="Type message"
-        className="h-full w-3/4 rounded-2xl leading-tight focus:outline-none"
+        className="my-1 h-[calc(100%_-_8px)] w-3/4 rounded-2xl pl-2 leading-tight focus:outline-none"
         onKeyDown={handleKeyDown}
       />
       <div className="flex flex-1">
@@ -195,8 +268,8 @@ function ChatWindow() {
   return (
     <div className="flex h-full w-1/2 flex-grow flex-col bg-[#f4f5f9]">
       <ChatHeader recipientName={recipient?.name} />
-      <Messages recipientId={recipient?.id} recipientPicture={recipient?.picture} />
-      <SendMessageInput recipientId={recipient?.id} />
+      <Messages senderPictureMedium={recipient?.picture.medium} />
+      <SendMessageInput recipientId={recipient?.id} recipientFirstName={recipient?.name.first} />
     </div>
   )
 }
