@@ -1,9 +1,10 @@
 import { KeyboardEvent, useCallback, useRef, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { addMessage, selectActiveChat } from '../store/messageSlice'
-import { IRecipient, selectActiveRecipient } from '../store/recipientSlice'
+import { type IRecipient, selectActiveRecipient, sortByFavourite } from '../store/recipientSlice'
 
 type ChatHeaderProps = {
+  recipientId?: IRecipient['id']
   recipientName?: IRecipient['name']
 }
 
@@ -12,7 +13,6 @@ type MessagesProps = {
 }
 
 type MessageProps = {
-  sendByUser: boolean
   messageTimestamp: string
   messageText: string
 } & MessagesProps
@@ -24,10 +24,18 @@ type SendMessageInputProps = {
 
 type SimulatedResponse = `Odpowiadam: ${string}`
 
-function ChatHeader({ recipientName }: ChatHeaderProps) {
+function ChatHeader({ recipientId, recipientName }: ChatHeaderProps) {
+  const dispatch = useAppDispatch()
+
   const classes = {
     iconWrapper: 'flex bg-white h-full w-full items-center justify-center ml-1',
-    icon: 'h-8 w-8 w-1/3 text-[#5172c2]',
+    icon: 'h-8 w-8 text-[#5172c2] hover:fill-[#e4effe]',
+  }
+
+  const handleClickedFavourite = () => {
+    if (recipientId) {
+      dispatch(sortByFavourite(recipientId))
+    }
   }
 
   return (
@@ -45,7 +53,7 @@ function ChatHeader({ recipientName }: ChatHeaderProps) {
         )}
       </h1>
       <div className="mb-1 flex w-1/3">
-        <div className={classes.iconWrapper}>
+        <button className={classes.iconWrapper}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -60,8 +68,8 @@ function ChatHeader({ recipientName }: ChatHeaderProps) {
               d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
             />
           </svg>
-        </div>
-        <div className={classes.iconWrapper}>
+        </button>
+        <button className={classes.iconWrapper}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -75,8 +83,8 @@ function ChatHeader({ recipientName }: ChatHeaderProps) {
               d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"
             />
           </svg>
-        </div>
-        <div className={classes.iconWrapper}>
+        </button>
+        <button className={classes.iconWrapper} onClick={handleClickedFavourite}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -91,26 +99,26 @@ function ChatHeader({ recipientName }: ChatHeaderProps) {
               d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
             />
           </svg>
-        </div>
+        </button>
       </div>
     </header>
   )
 }
 
-function Message({ senderPictureMedium, sendByUser, messageText, messageTimestamp }: MessageProps) {
-  if (sendByUser) {
-    return (
-      <div className="m-4 flex items-center self-end">
-        <div className="rounded-2xl bg-[#e4effe] p-4">{messageText}</div>
-        <div className="h-0 w-0 border-y-8 border-l-[8px] border-[#e4effe] border-y-transparent"></div>
-        <div className="flex flex-col items-center">
-          <img src={senderPictureMedium} alt="" className="mt-6 ml-4 h-12 w-12 rounded-full bg-contain" />
-          <div className="mt-1 ml-3 text-xs font-semibold">{messageTimestamp}</div>
-        </div>
+function SentMessage({ senderPictureMedium, messageText, messageTimestamp }: MessageProps) {
+  return (
+    <div className="m-4 flex items-center self-end">
+      <div className="rounded-2xl bg-[#e4effe] p-4">{messageText}</div>
+      <div className="h-0 w-0 border-y-8 border-l-[8px] border-[#e4effe] border-y-transparent"></div>
+      <div className="flex flex-col items-center">
+        <img src={senderPictureMedium} alt="" className="mt-6 ml-4 h-12 w-12 rounded-full bg-contain" />
+        <div className="mt-1 ml-3 text-xs font-semibold">{messageTimestamp}</div>
       </div>
-    )
-  }
+    </div>
+  )
+}
 
+function ReceivedMessage({ senderPictureMedium, messageText, messageTimestamp }: MessageProps) {
   return (
     <div className="m-4 flex items-center self-start">
       <div className="flex flex-col items-center">
@@ -134,11 +142,20 @@ function Messages({ senderPictureMedium }: MessagesProps) {
         const minutes =
           date.getMinutes().toLocaleString().length === 1 ? `0${date.getMinutes()}` : `${date.getMinutes()}`
         const hoursAndMinutes = `${date.getHours()}:${minutes}`
+        if (sendByUser) {
+          return (
+            <SentMessage
+              key={item.message.createdAt}
+              senderPictureMedium={user.avatar}
+              messageText={item.message.text}
+              messageTimestamp={hoursAndMinutes}
+            />
+          )
+        }
         return (
-          <Message
+          <ReceivedMessage
             key={item.message.createdAt}
-            senderPictureMedium={sendByUser ? user.avatar : senderPictureMedium}
-            sendByUser={sendByUser}
+            senderPictureMedium={senderPictureMedium}
             messageText={item.message.text}
             messageTimestamp={hoursAndMinutes}
           />
@@ -243,7 +260,7 @@ function SendMessageInput({ recipientId, recipientFirstName }: SendMessageInputP
             />
           </svg>
         </button>
-        <button className="m-2 rounded-full bg-[#4768b5] p-3" onClick={sendMessage}>
+        <button className="m-2 rounded-full bg-[#4768b5] p-3 hover:bg-[#5172c2]" onClick={sendMessage}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -269,7 +286,7 @@ function ChatWindow() {
 
   return (
     <div className="flex h-full w-1/2 flex-grow flex-col bg-[#f4f5f9]">
-      <ChatHeader recipientName={recipient?.name} />
+      <ChatHeader recipientId={recipient?.id} recipientName={recipient?.name} />
       <Messages senderPictureMedium={recipient?.picture.medium} />
       <SendMessageInput recipientId={recipient?.id} recipientFirstName={recipient?.name.first} />
     </div>

@@ -37,6 +37,7 @@ interface IResponse {
 interface IRecipientState {
   id: string
   isActive: boolean
+  isFavourite: boolean
 }
 
 export interface IRecipient extends IRecipientState, IResponse {}
@@ -61,7 +62,7 @@ const STANDARD_ERROR_MESSAGE = 'No recipients'
 export const getRecipients = createAsyncThunk('getRecipients', async (url: string) => {
   const response = await fetch(url)
   const { results } = (await response.json()) as { results: IResponse[] }
-  return results.map(recipient => ({ ...recipient, id: uuid(), isActive: false }))
+  return results.map(recipient => ({ ...recipient, id: uuid(), isActive: false, isFavourite: false }))
 })
 
 export const recipientSlice = createSlice({
@@ -76,6 +77,13 @@ export const recipientSlice = createSlice({
       state.results.forEach(recipient =>
         recipient.id === action.payload ? (recipient.isActive = true) : (recipient.isActive = false)
       )
+    },
+    sortByFavourite: (state, action: PayloadAction<string>) => {
+      const recipient = state.results.find(recipient => recipient.id === action.payload)
+      if (recipient) {
+        recipient.isFavourite = !recipient.isFavourite
+      }
+      state.results.sort((a, b) => Number(b.isFavourite) - Number(a.isFavourite))
     },
   },
   extraReducers: builder => {
@@ -95,7 +103,7 @@ export const recipientSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { activateRecipient } = recipientSlice.actions
+export const { activateRecipient, sortByFavourite } = recipientSlice.actions
 
 export const selectActiveRecipient = (state: RootState) =>
   state.recipients.results.find(recipient => recipient.isActive)
