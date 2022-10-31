@@ -38,6 +38,7 @@ interface IRecipientState {
   id: string
   isActive: boolean
   isFavourite: boolean
+  isTyping: boolean
 }
 
 export interface IRecipient extends IRecipientState, IResponse {}
@@ -59,10 +60,16 @@ const initialState: IRecipients = {
 
 const STANDARD_ERROR_MESSAGE = 'No recipients'
 
-export const getRecipients = createAsyncThunk('getRecipients', async (url: string) => {
+export const getRecipients = createAsyncThunk<IRecipient[], string>('getRecipients', async (url: string) => {
   const response = await fetch(url)
   const { results } = (await response.json()) as { results: IResponse[] }
-  return results.map(recipient => ({ ...recipient, id: uuid(), isActive: false, isFavourite: false }))
+  return results.map(recipient => ({
+    ...recipient,
+    id: uuid(),
+    isActive: false,
+    isFavourite: false,
+    isTyping: false,
+  }))
 })
 
 export const recipientSlice = createSlice({
@@ -85,6 +92,18 @@ export const recipientSlice = createSlice({
       }
       state.results.sort((a, b) => Number(b.isFavourite) - Number(a.isFavourite))
     },
+    recipientStartsTyping: (state, action: PayloadAction<string>) => {
+      const recipient = state.results.find(recipient => recipient.id === action.payload)
+      if (recipient) {
+        recipient.isTyping = true
+      }
+    },
+    recipientEndsTyping: (state, action: PayloadAction<string>) => {
+      const recipient = state.results.find(recipient => recipient.id === action.payload)
+      if (recipient) {
+        recipient.isTyping = false
+      }
+    },
   },
   extraReducers: builder => {
     builder
@@ -103,7 +122,7 @@ export const recipientSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { activateRecipient, sortByFavourite } = recipientSlice.actions
+export const { activateRecipient, sortByFavourite, recipientStartsTyping, recipientEndsTyping } = recipientSlice.actions
 
 export const selectActiveRecipient = (state: RootState) =>
   state.recipients.results.find(recipient => recipient.isActive)

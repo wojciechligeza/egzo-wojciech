@@ -1,7 +1,13 @@
-import { KeyboardEvent, useCallback, useRef, useState } from 'react'
+import { KeyboardEvent, useCallback, useRef } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { addMessage, selectActiveChat } from '../store/messageSlice'
-import { type IRecipient, selectActiveRecipient, sortByFavourite } from '../store/recipientSlice'
+import {
+  type IRecipient,
+  selectActiveRecipient,
+  sortByFavourite,
+  recipientStartsTyping,
+  recipientEndsTyping,
+} from '../store/recipientSlice'
 
 type ChatHeaderProps = {
   recipientId?: IRecipient['id']
@@ -20,6 +26,7 @@ type MessageProps = {
 
 type SendMessageInputProps = {
   recipientId?: IRecipient['id']
+  recipientIsTyping?: IRecipient['isTyping']
   recipientFirstName?: string
 }
 
@@ -166,18 +173,17 @@ function Messages({ senderPictureMedium }: MessagesProps) {
   )
 }
 
-function SendMessageInput({ recipientId, recipientFirstName }: SendMessageInputProps) {
+function SendMessageInput({ recipientId, recipientIsTyping, recipientFirstName }: SendMessageInputProps) {
   const user = useAppSelector(state => state.user)
   const dispatch = useAppDispatch()
   const inputRef = useRef<HTMLInputElement>(null)
-  const [recipientIsTyping, setRecipientIsTyping] = useState(false)
 
   const simulateResponse = useCallback(() => {
     if (recipientId && inputRef.current?.value) {
       const text: SimulatedResponse = `Odpowiadam: ${inputRef.current.value}`
       const max = 10 * 1000 // 10 secs
       const min = 5 * 1000 // 5 secs
-      setRecipientIsTyping(true)
+      dispatch(recipientStartsTyping(recipientId))
       setTimeout(() => {
         dispatch(
           addMessage({
@@ -186,7 +192,7 @@ function SendMessageInput({ recipientId, recipientFirstName }: SendMessageInputP
             message: { text, createdAt: Date.now() },
           })
         )
-        setRecipientIsTyping(false)
+        dispatch(recipientEndsTyping(recipientId))
       }, Math.floor(Math.random() * (max - min + 1) + min)) // execute in random time from 5 to 10 secs inclusive
     }
   }, [dispatch, recipientId, user.id])
@@ -293,7 +299,11 @@ function ChatWindow() {
         recipientIsFavourite={recipient?.isFavourite}
       />
       <Messages senderPictureMedium={recipient?.picture.medium} />
-      <SendMessageInput recipientId={recipient?.id} recipientFirstName={recipient?.name.first} />
+      <SendMessageInput
+        recipientId={recipient?.id}
+        recipientFirstName={recipient?.name.first}
+        recipientIsTyping={recipient?.isTyping}
+      />
     </div>
   )
 }
