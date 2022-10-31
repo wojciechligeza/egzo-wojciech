@@ -5,10 +5,10 @@ export function convertTimeToReadableFormat(time: number): string {
   const days = Math.floor(hours / 24)
   const years = Math.floor(days / 365)
 
-  if (minutes) return `${minutes} min`
-  if (hours) return `${hours} hour`
-  if (days) return `${days} day`
   if (years) return `${years} year`
+  if (days) return `${days} day`
+  if (hours) return `${hours} hour`
+  if (minutes) return `${minutes} min`
 
   return `${seconds} sec`
 }
